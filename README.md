@@ -5,3 +5,10 @@
 ```
 sudo apt install portaudio19-dev
 ```
+
+# Installation
+```
+git clone
+poetry shell
+poetry install
+```
