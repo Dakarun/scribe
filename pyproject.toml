@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "scribe"
+version = "0.1.0"
+description = ""
+authors = ["Jasper Groot <jasperjgroot@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+openai-whisper = "^20230314"
+Flask = "^2.3.2"
+
+[tool.poetry.group.dev.dependencies]
+watchdog = "3.0.0"
+pytest = "^7.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
