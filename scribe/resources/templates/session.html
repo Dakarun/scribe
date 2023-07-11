@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Sessions{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  {% for session in current_sessions %}
+    <article class="current_session">
+      <header>
+        <div>
+          <h2>{{ session["name"] }}</h2>
+          <div class="session_time">
+            Started: {{ session["start_ts"] }}
+          </div>
+          <div class="description">{{ session["description"] }}</div>
+        </div>
+      </header>
+    </article>
+  {% endfor %}
+
+  {% for session in past_sessions %}
+    <article class="past_sessions">
+      <header>
+        <div>
+          <h2>{{ session["name"] }}</h2>
+          <div class="session_time">
+            Started: {{ session["start_ts"] }}
+            Finished: {{ session["end_ts"] }}
+          </div>
+          <div class="description">{{ session["description"] }}</div>
+        </div>
+      </header>
+    </article>
+  {% endfor %}
+
+  {% if current_sessions %}
+  <div class="active_session_banner">
+    <p>Can't start a new session if there's already an active session</p>
+    <input type="submit" value="End">
+  </div>
+  {% else %}
+  <form method="post">
+    <label for="name">Name</label>
+    <input name="name" id="name" value="{{ request.form['name'] }}" required>
+    <label for="description">Description</label>
+    <textarea name="description" id="description">{{ request.form['description'] }}</textarea>
+    <input type="submit" value="Save">
+  </form>
+  {% endif %}
+{% endblock %}
+
+
