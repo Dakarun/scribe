@@ -37,7 +37,7 @@
   {% if current_sessions %}
   <div class="active_session_banner">
     <p>Can't start a new session if there's already an active session</p>
-    <input type="submit" value="End">
+    <input type="submit" name="end_session" value="End">
   </div>
   {% else %}
   <form method="post">
@@ -45,7 +45,7 @@
     <input name="name" id="name" value="{{ request.form['name'] }}" required>
     <label for="description">Description</label>
     <textarea name="description" id="description">{{ request.form['description'] }}</textarea>
-    <input type="submit" value="Save">
+    <input type="submit" name="start_session" value="Start Session">
   </form>
   {% endif %}
 {% endblock %}

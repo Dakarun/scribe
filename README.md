@@ -12,3 +12,8 @@ git clone
 poetry shell
 poetry install
 ```
+
+Init DB
+```
+flask --app scribe.server init-db
+```
