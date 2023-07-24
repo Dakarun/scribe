@@ -3,7 +3,7 @@ import sqlite3
 
 from flask import current_app, g
 
-DATABASE = "./scribe.db"
+DATABASE = "/home/jasper/projects/scribe/scribe.db"
 
 
 def get_db():

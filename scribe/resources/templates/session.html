@@ -5,6 +5,24 @@
 {% endblock %}
 
 {% block content %}
+
+  {% if current_sessions %}
+    <div class="active_session_banner">
+      <p>Can't start a new session if there's already an active session</p>
+      <form method="post">
+        <input type="submit" name="end_session" value="End">
+      </form>
+    </div>
+  {% else %}
+    <form method="post">
+      <label for="name">Name</label>
+      <input name="name" id="name" value="{{ request.form['name'] }}" required>
+      <label for="description">Description</label>
+      <textarea name="description" id="description">{{ request.form['description'] }}</textarea>
+      <input type="submit" name="start_session" value="Start Session">
+    </form>
+  {% endif %}
+
   {% for session in current_sessions %}
     <article class="current_session">
       <header>
@@ -33,21 +51,4 @@
       </header>
     </article>
   {% endfor %}
-
-  {% if current_sessions %}
-  <div class="active_session_banner">
-    <p>Can't start a new session if there's already an active session</p>
-    <input type="submit" name="end_session" value="End">
-  </div>
-  {% else %}
-  <form method="post">
-    <label for="name">Name</label>
-    <input name="name" id="name" value="{{ request.form['name'] }}" required>
-    <label for="description">Description</label>
-    <textarea name="description" id="description">{{ request.form['description'] }}</textarea>
-    <input type="submit" name="start_session" value="Start Session">
-  </form>
-  {% endif %}
 {% endblock %}
-
-

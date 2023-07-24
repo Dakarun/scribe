@@ -41,7 +41,7 @@ class TranscriberWorker:
                             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                             datefmt='%H:%M:%S',
                             level=logging.DEBUG)
-        logger = logging.getLogger(self.__name__)
+        logger = logging.getLogger(self.__class__.__name__)
         return logger
 
     def _write_to_staging_file(self, text: str) -> None:
