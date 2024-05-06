@@ -45,6 +45,9 @@ class TranscriberWorker:
         return logger
 
     def _write_to_staging_file(self, text: str) -> None:
+        base_dir = Path("/tmp/scribe/staging/")
+        if not base_dir.exists():
+            base_dir.mkdir(parents=True)
         staging_file = Path(f"/tmp/scribe/staging/{self.session_filename}")
         with open(staging_file, "a+") as f:
             f.write(text)
@@ -59,7 +62,7 @@ class TranscriberWorker:
         self.queue.put(audio)
 
     def transcribe(self, audio_file_location) -> None:
-        transcription = self.model.transcribe(audio_file_location)
+        transcription = self.model.transcribe(audio_file_location, fp16=False)
         self._write_to_staging_file(transcription["text"].strip())
 
     def end_session(self):

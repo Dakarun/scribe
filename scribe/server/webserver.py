@@ -1,7 +1,9 @@
 from datetime import datetime
-from flask import request, current_app, render_template, Blueprint, redirect, url_for, g
+from flask import request, current_app, render_template, Blueprint, redirect, url_for, g, Response
 from scribe.server.db import get_db
+# from scribe.server.exceptions import NoActiveSession
 from scribe.server.transcriber.worker import TranscriberWorker, ModelSize
+from pathlib import Path
 
 from sqlite3 import Cursor
 
@@ -29,12 +31,23 @@ def index():
 
 @bp.route("/upload", methods=["GET", "PUT"])
 def upload_audio_file():
+    db = get_db()
+    Path("/tmp/scribe/uploads/audio/").mkdir(parents=True, exist_ok=True)  # TODO: Move into central bootstrapping
+    if not get_active_sessions(db):
+        response = {"exception": "No active sessions found"}
+        return response, 400
     if request.method in ["PUT"]:
         file = request.files["file"]
         date_string = datetime.now().isoformat()
         file.save(f"/tmp/scribe/uploads/audio/{date_string}")
-        if cache.get("transcriber"):
-            cache["transcriber"].transcribe(f"/tmp/scribe/uploads/audio/{date_string}")
+        if not cache.get("transcriber"):
+            current_sessions = get_active_sessions(db)
+            if len(current_sessions):
+                create_worker(db, current_sessions)
+            else:
+                # raise NoActiveSession()
+                pass
+        cache["transcriber"].transcribe(f"/tmp/scribe/uploads/audio/{date_string}")
         return {"ResponseCode": "200", "FileName": f"/tmp/scribe/uploads/audio/{date_string}"}
     elif request.method == "GET":
         return "<p>Upload endpoint</p>"
@@ -89,7 +102,7 @@ def start_session_form(request):
         active_session = get_active_sessions(db)
         session_id = active_session[0]["session_id"]
         storage_backend = "LOCAL_FILESYSTEM"
-        location = f"/tmp/scribe/transcriptions/{session_id}_{session_name}"
+        location = f"{session_id}_{session_name}"
 
         db.execute(
             """
@@ -103,13 +116,15 @@ def start_session_form(request):
 
 
 def create_worker(db, current_sessions):
+    print("Creating worker")
+    session_id = str(current_sessions[0]["session_id"])
     transcription = db.execute(
         "SELECT * FROM transcriptions WHERE session_id = ?",
-        str(current_sessions[0]["session_id"])) \
+        (session_id,)) \
         .fetchall()
-    cache["transcriber"] = TranscriberWorker(ModelSize.MEDIUM,
-                                             transcription[0]["location"],
+    cache["transcriber"] = TranscriberWorker(ModelSize.BASE_EN, transcription[0]["location"],
                                              transcription[0]["location"])
+    print("Worker created")
 
 
 def end_worker(e=None):
@@ -127,7 +142,7 @@ def end_session_form():
         UPDATE sessions SET end_ts=datetime()
         WHERE session_id = ?
         """,
-        (f"{active_session['session_id']}")
+        (f"{active_session['session_id']}",)
     )
     db.commit()
     end_worker()

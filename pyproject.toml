@@ -11,7 +11,7 @@ openai-whisper = "^20230314"
 Flask = "^2.3.2"
 pyaudio = "^0.2.13"
 speechrecognition = "^3.10.0"
-torch = {version = "^2.0.0+cpu", source = "pytorch-cpu"}
+torch = {version = "^2.3.0+cpu", source = "pytorch-cpu"}
 
 [tool.poetry.group.dev.dependencies]
 watchdog = "3.0.0"
@@ -20,7 +20,7 @@ pytest = "^7.4.0"
 [[tool.poetry.source]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
-priority = "supplemental"
+#priority = "supplemental"
 
 [build-system]
 requires = ["poetry-core"]
