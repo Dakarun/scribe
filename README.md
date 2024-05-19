@@ -36,15 +36,15 @@ title: Order example
 ---
 erDiagram
     user ||--|{ session : "is owner of"
-    user ||--|{ session_entry : uploaded
-    user ||--|{ transcription_entry : "is speaker of"
+    user ||--|{ session_entries : uploaded
+    user ||--|{ transcription_entries : "is speaker of"
     
-    session ||--|{ session_entry : "Is container for"
+    session ||--|{ session_entries : "Is container for"
     session ||--|{ transcription : "Is parent of"
     
-    session_entry ||--|{ transcription_entry : "Is source of"
+    session_entries ||--|{ transcription_entries : "Is source of"
     
-    transcription ||--|{ transcription_entry : "Is container of"
+    transcription ||--|{ transcription_entries : "Is container of"
     
     user {
         long user_id PK "monotonic id"
@@ -55,13 +55,14 @@ erDiagram
     
     session {
         long session_id PK "monotonic id"
+        timestamp created_ts "When did the session start"
+        string name
         string description
         long user_id FK "Owner of the session"
-        timestamp created_ts "When did the session start"
         timestamp end_ts "When was the session closed"
     }
     
-    session_entry {
+    session_entries {
         long session_entry_id PK
         timestamp created_ts
         long session_id FK "FK to session"
@@ -79,7 +80,7 @@ erDiagram
         bool default_transcription "Is this the default transcription"
     }
     
-    transcription_entry {
+    transcription_entries {
         long transcription_entry_id PK
         timestamp created_ts "Time record was created"
         timestamp updated_ts "Time record was updated, might not be necessary if entity is immutable"
@@ -108,9 +109,10 @@ A session in which users have submitted audio for transcription. Main entity for
 | What        | Description          |
 |-------------|----------------------|
 | session_id  | monotonic id         |
+| created_ts  |                      |
+| name        | Name for session     |
 | description |                      |
 | user_id     | Owner of the session |
-| start_ts    |                      |
 | end_ts      |                      |
 
 ### Session Entry
@@ -162,7 +164,7 @@ The user can
 - Start/end a session
 - Read a transcription
 - Submit a session for reprocessing
-- Submit a transcription_entry for reprocessing
+- Submit a transcription_entries for reprocessing
 
 A user can potentially:
 - Reorder transcription entries
@@ -224,8 +226,8 @@ flowchart TB
     sessions[ /sessions?session_id=...]
     reprocess[User invokes reprocessing]
     transcription[(scribe.transcription)]
-    session_entry[(scribe.session_entry)]
-    transcription_entry[(scribe.transcription_entry)]
+    session_entries[(scribe.session_entry)]
+    transcription_entries[(scribe.transcription_entry)]
     reprocessing_action[Reprocessing]
     
     user -- Visits --> sessions
@@ -236,7 +238,7 @@ flowchart TB
         reprocessing_action -- Inserts record into --> transcription
         reprocessing_action -- Selects all entries for selected session --> session_entry
         reprocessing_action -- Inserts new transcription entries for new transcription into --> transcription_entry
-        transcription_entry & reprocessing_action -- Marks new transcription as active\n old as inactive --> transcription
+        transcription_entries & reprocessing_action -- Marks new transcription as active\n old as inactive --> transcription
     end
     
     reprocess --> reprocessing
