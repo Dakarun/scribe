@@ -45,10 +45,12 @@ def upload_audio_file():
             if len(current_sessions):
                 create_worker(db, current_sessions)
             else:
+                # TODO: Fix cyclical imports
                 # raise NoActiveSession()
                 pass
         cache["transcriber"].transcribe(f"/tmp/scribe/uploads/audio/{date_string}")
-        return {"ResponseCode": "200", "FileName": f"/tmp/scribe/uploads/audio/{date_string}"}
+        response = {"filename": f"/tmp/scribe/uploads/audio/{date_string}"}
+        return response, 200
     elif request.method == "GET":
         return "<p>Upload endpoint</p>"
 
