@@ -160,7 +160,6 @@ transcription should be stored on the db, or on disk/object store.
 ## User actions
 The user can 
 - Start/end a session
-- Submit a session entry
 - Read a transcription
 - Submit a session for reprocessing
 - Submit a transcription_entry for reprocessing
@@ -170,7 +169,75 @@ A user can potentially:
 - Split transcription entries
 
 
+### Start/end session
+All these graphs assume the user is logged in
+
 ```mermaid
-flowchart LR
+flowchart TB
+    user((User))
+    index[ /index]
     
+    active_session{Is the user\nparticipating\nin a session?}
+    session_owner{Is the user\nthe owner?}
+    
+    default[Default page]
+    active_session_page[Render active session page]
+    end_session_button[Render end session button]
+    
+    user -- Visits --> index
+    index --> active_session
+    active_session -- No ----> default
+    active_session -- Yes --> active_session_page
+    
+    active_session_page --> session_owner
+    session_owner -- Yes --> end_session_button
+    session_owner -- No --> Nothing 
+```
+
+### Read a transcription
+```mermaid
+flowchart TB
+    user((User))
+    index[ /index]
+    select_session[User selects past session]
+    sessions[ /sessions?session_id=...]
+    default_transcription[Read default transcription]
+    multiple_transcriptions{Multiple\nTranscriptions?}
+    render_additional_transcriptions[Render additional transcriptionps]
+    select_alternative_transcription[User selects non-default transcription]
+    transcriptions[ /transcriptions?transcription_id=...]
+    
+    user -- Visits --> index 
+    index --> select_session
+    select_session --> sessions
+    sessions --> default_transcription
+    sessions --> multiple_transcriptions
+    multiple_transcriptions -- Yes --> render_additional_transcriptions
+    render_additional_transcriptions --> select_alternative_transcription
+    select_alternative_transcription --> transcriptions
+```
+
+### Submit a session for reprocessing
+```mermaid
+flowchart TB
+    user((User))
+    sessions[ /sessions?session_id=...]
+    reprocess[User invokes reprocessing]
+    transcription[(scribe.transcription)]
+    session_entry[(scribe.session_entry)]
+    transcription_entry[(scribe.transcription_entry)]
+    reprocessing_action[Reprocessing]
+    
+    user -- Visits --> sessions
+    sessions --> reprocess
+    
+    subgraph reprocessing
+        direction TB
+        reprocessing_action -- Inserts record into --> transcription
+        reprocessing_action -- Selects all entries for selected session --> session_entry
+        reprocessing_action -- Inserts new transcription entries for new transcription into --> transcription_entry
+        transcription_entry & reprocessing_action -- Marks new transcription as active\n old as inactive --> transcription
+    end
+    
+    reprocess --> reprocessing
 ```
