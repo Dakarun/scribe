@@ -1,19 +1,18 @@
 from datetime import datetime
-from sqlalchemy import Column, BigInteger, String, DateTime, Boolean
+from sqlalchemy import Column, BigInteger, Integer, String, DateTime, Boolean
 from scribe.server.db import Base
 
 
 class Session(Base):
     __tablename__ = "sessions"
-    session_id = Column(BigInteger, primary_key=True)
+    session_id = Column(BigInteger().with_variant(Integer, "sqlite"), primary_key=True)
     created_ts = Column(DateTime, nullable=False)
     name = Column(String, nullable=False)
     description = Column(String)
     # user_id = Column(BigInteger, nullable=False)
     end_ts = Column(DateTime)
 
-    def __init__(self, session_id: int = None, created_ts: datetime = None, name: str = None, description: str = None, end_ts: datetime = None):
-        self.session_id = session_id
+    def __init__(self, created_ts: datetime = None, name: str = None, description: str = None, end_ts: datetime = None):
         self.created_ts = created_ts
         self.name = name
         self.description = description
@@ -32,8 +31,7 @@ class SessionEntry(Base):
     # user_id = Column(BigInteger, nullable=False)
     file = Column(String, nullable=False)
 
-    def __init__(self, session_entry_id: int = None, created_ts: datetime = None, session_id: int = None, file: str = None):
-        self.session_entry_id = session_entry_id
+    def __init__(self, created_ts: datetime = None, session_id: int = None, file: str = None):
         self.created_ts = created_ts
         self.session_id = session_id
         self.file = file
@@ -45,7 +43,7 @@ class SessionEntry(Base):
 
 class Transcription(Base):
     __tablename__ = "transcription"
-    transcription_id = Column(BigInteger, primary_key=True)
+    transcription_id = Column(BigInteger().with_variant(Integer, "sqlite"), primary_key=True)
     created_ts = Column(DateTime, nullable=False)
     updated_ts = Column(DateTime)
     session_id = Column(BigInteger, nullable=False)
@@ -53,8 +51,7 @@ class Transcription(Base):
     base_location = Column(String, nullable=False)
     default_transcription = Column(Boolean, nullable=False)
 
-    def __init__(self, transcription_id: int = None, created_ts: datetime = None, updated_ts: datetime = None, session_id: int = None, storage_backend: str = None, base_location: str = None, default_transcription: bool = None):
-        self.transcription_id = transcription_id
+    def __init__(self, created_ts: datetime = None, updated_ts: datetime = None, session_id: int = None, storage_backend: str = None, base_location: str = None, default_transcription: bool = None):
         self.created_ts = created_ts
         self.updated_ts = updated_ts
         self.session_id = session_id
@@ -78,8 +75,7 @@ class TranscriptionEntry(Base):
     location = Column(String, nullable=False)
     is_active = Column(Boolean, nullable=False)
 
-    def __init__(self, transcription_entry_id: int = None, created_ts: datetime = None, updated_ts: datetime = None, session_entry_id: int = None, transcription_id: int = None, location: str = None, is_active: bool = None):
-        self.transcription_entry_id = transcription_entry_id
+    def __init__(self, created_ts: datetime = None, updated_ts: datetime = None, session_entry_id: int = None, transcription_id: int = None, location: str = None, is_active: bool = None):
         self.created_ts = created_ts
         self.updated_ts = updated_ts
         # self.user_id = user_id

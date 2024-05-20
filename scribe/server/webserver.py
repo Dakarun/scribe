@@ -1,13 +1,10 @@
 from datetime import datetime
-from flask import request, current_app, render_template, Blueprint, redirect, url_for, g, Response
+from flask import request, render_template, Blueprint, redirect, url_for
 from scribe.server.db import db_session
 # from scribe.server.exceptions import NoActiveSession
 from scribe.server.transcriber.worker import TranscriberWorker, ModelSize
 from scribe.server.models import Session, SessionEntry, Transcription, TranscriptionEntry
 from pathlib import Path
-from sqlalchemy import select
-
-from sqlite3 import Cursor
 
 bp = Blueprint("scribe", __name__)
 cache = {}
@@ -56,14 +53,14 @@ def upload_audio_file():
 
 
 def get_active_sessions():
-    active_sessions = Session.query.filter(Session.end_ts is None).order_by(Session.session_id.desc()).all()
+    active_sessions = Session.query.filter(Session.end_ts == None).order_by(Session.session_id.desc()).all()
     return active_sessions
 
 
 def get_past_sessions():
     past_sessions = Session.query \
         .join(Transcription, Session.session_id == Transcription.transcription_id) \
-        .filter(Session.end_ts is not None)
+        .filter(Session.end_ts != None)
     return past_sessions
 
 
@@ -88,7 +85,9 @@ def start_session_form(request):
         storage_backend = "LOCAL_FILESYSTEM"
         location = f"{session_id}_{session_name}"
 
-        transcription = Transcription(session_id=session_id, storage_backend=storage_backend, base_location=location)
+        now = datetime.now()
+        transcription = Transcription(session_id=session_id, storage_backend=storage_backend, base_location=location,
+                                      created_ts=now, updated_ts=now, default_transcription=True)
         db_session.add(transcription)
         db_session.commit()
         cache["transcriber"] = TranscriberWorker(ModelSize.MEDIUM, location, location)
@@ -98,8 +97,8 @@ def create_worker(current_sessions):
     print("Creating worker")
     session_id = str(current_sessions[0].session_id)
     transcription = Transcription.query.filter(Transcription.session_id == session_id).all()
-    cache["transcriber"] = TranscriberWorker(ModelSize.BASE_EN, transcription[0]["location"],
-                                             transcription[0]["location"])
+    cache["transcriber"] = TranscriberWorker(ModelSize.BASE_EN, transcription[0].base_location,
+                                             transcription[0].base_location)
     print("Worker created")
 
 
@@ -113,7 +112,7 @@ def end_worker(e=None):
 def end_session_form():
     active_session = get_active_sessions()[0]
     active_session.end_ts = datetime.now()
-    active_session.commit()
+    db_session.commit()
     end_worker()
 
 
