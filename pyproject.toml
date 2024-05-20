@@ -12,6 +12,7 @@ Flask = "^2.3.2"
 pyaudio = "^0.2.13"
 speechrecognition = "^3.10.0"
 torch = {version = "^2.3.0+cpu", source = "pytorch-cpu"}
+sqlalchemy = "^2.0.30"
 
 [tool.poetry.group.dev.dependencies]
 watchdog = "3.0.0"

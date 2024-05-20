@@ -1,12 +1,20 @@
+import click
+
 from flask import Flask
+from scribe.server.db import db_session, init_db
 import scribe.server.webserver
 
 
-def create_app():
-    app = Flask("webserver", template_folder="scribe/resources/templates/", static_folder="scribe/resources/static/")
-    # existing code omitted
+app = Flask("webserver", template_folder="scribe/resources/templates/", static_folder="scribe/resources/static/")
+app.register_blueprint(webserver.bp)
 
-    from scribe.server import db
-    db.init_app(app)
-    app.register_blueprint(webserver.bp)
-    return app
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
+
+
+@app.cli.command("init-db")
+def init_db_command():
+    init_db()
+    click.echo("Initialized the database")
