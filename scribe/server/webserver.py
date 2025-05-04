@@ -4,7 +4,7 @@ from scribe.server.db import db_session
 # from scribe.server.exceptions import NoActiveSession
 from scribe.server.transcriber.worker import TranscriberWorker, ModelSize
 from scribe.server.models import Session, SessionEntry, Transcription, TranscriptionEntry
-from pathlib import Path
+from scribe.server.file_manager import SessionEntryFileManager
 
 bp = Blueprint("scribe", __name__)
 cache = {}
@@ -29,24 +29,27 @@ def index():
 
 @bp.route("/upload", methods=["GET", "PUT"])
 def upload_audio_file():
-    Path("/tmp/scribe/uploads/audio/").mkdir(parents=True, exist_ok=True)  # TODO: Move into central bootstrapping
-    if not get_active_sessions():
+    session = get_active_sessions()
+    if not session:
         response = {"exception": "No active sessions found"}
         return response, 400
     if request.method in ["PUT"]:
         file = request.files["file"]
-        date_string = datetime.now().isoformat()
-        file.save(f"/tmp/scribe/uploads/audio/{date_string}")
+        created_ts = datetime.now()
+        session_entry = SessionEntry(created_ts=created_ts, session_id=session.session_id, file=f"/tmp/scribe/uploads/audio/{session.session_id}/{created_ts}")
+        db_session.add(session_entry)
+        file_manager = SessionEntryFileManager(session_entry.file, session_entry, file)
+        file_manager.save()
+        db_session.commit()
         if not cache.get("transcriber"):
-            current_sessions = get_active_sessions()
-            if len(current_sessions):
-                create_worker(current_sessions)
+            if session:
+                create_worker(session)
             else:
                 # TODO: Fix cyclical imports
                 # raise NoActiveSession()
                 pass
-        cache["transcriber"].transcribe(f"/tmp/scribe/uploads/audio/{date_string}")
-        response = {"filename": f"/tmp/scribe/uploads/audio/{date_string}"}
+        cache["transcriber"].transcribe(session_entry.file)
+        response = {"filename": session_entry.file}
         return response, 200
     elif request.method == "GET":
         return "<p>Upload endpoint</p>"
@@ -118,4 +121,4 @@ def end_session_form():
 
 @bp.route("/healthcheck")
 def healthcheck():
-    return "200 OK"
+    return 200

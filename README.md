@@ -18,6 +18,18 @@ Init DB
 flask --app scribe.server init-db
 ```
 
+Running
+```
+python -m flask --app=scribe.server run
+# or if you need to bind it to your default address
+python -m flask --app=scribe.server run --host=0.0.0.0
+```
+
+# Development
+```
+
+```
+
 # Backend Design
 Features
 - Multiple users can contribute to the same transcription
